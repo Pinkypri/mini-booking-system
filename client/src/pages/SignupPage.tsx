@@ -110,7 +110,7 @@ const SignupPage: React.FC = () => {
   };
 
   const handleForgetPasswordRedirect = () => {
-    navigate('/forget-password');
+    navigate('/forgot-password');
   };
 
   return (
