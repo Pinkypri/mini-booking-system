@@ -13,6 +13,7 @@ interface SeatLayoutProps {
   slotId?: string;
   bookedSeats?: string[];
   bookings?: any[];
+  capacity?: number;
 }
 
 const SeatLayout: React.FC<SeatLayoutProps> = ({ 
@@ -21,7 +22,8 @@ const SeatLayout: React.FC<SeatLayoutProps> = ({
   maxSeats = 6,
   slotId,
   bookedSeats = [],
-  bookings = []
+  bookings = [],
+  capacity = 96
 }) => {
   const [finalBookedSeats, setFinalBookedSeats] = useState<string[]>([]);
 
@@ -52,10 +54,14 @@ const SeatLayout: React.FC<SeatLayoutProps> = ({
 
   const generateSeats = (): Seat[] => {
     const seats: Seat[] = [];
-    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    const seatsPerRow = 12;
+    const totalRows = Math.ceil(capacity / seatsPerRow);
+    const rows = Array.from({ length: totalRows }, (_, i) => String.fromCharCode(65 + i)); // A, B, C, ...
     
+    let seatCount = 0;
     rows.forEach(row => {
-      for (let i = 1; i <= 12; i++) {
+      const seatsInThisRow = Math.min(seatsPerRow, capacity - seatCount);
+      for (let i = 1; i <= seatsInThisRow; i++) {
         const seatId = `${row}${i}`;
         const type = row <= 'C' ? 'vip' : row <= 'F' ? 'premium' : 'regular';
         const price = type === 'vip' ? 500 : type === 'premium' ? 350 : 250;
@@ -69,6 +75,7 @@ const SeatLayout: React.FC<SeatLayoutProps> = ({
           type,
           price
         });
+        seatCount++;
       }
     });
     
@@ -199,7 +206,7 @@ const SeatLayout: React.FC<SeatLayoutProps> = ({
           
           {/* Mobile View - Stacked Layout */}
           <div className="block sm:hidden">
-            {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(row => (
+            {Array.from(new Set(seats.map(seat => seat.row))).map(row => (
               <div key={row} className="mb-4">
                 <div className="text-center font-bold text-red-600 mb-2 bg-red-50 py-1 px-2 rounded-lg border border-red-200 inline-block">
                   Row {row}
@@ -252,53 +259,64 @@ const SeatLayout: React.FC<SeatLayoutProps> = ({
 
           {/* Tablet and Desktop View - Original Layout */}
           <div className="hidden sm:block">
-            {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(row => (
+            {Array.from(new Set(seats.map(seat => seat.row))).map(row => (
               <div key={row} className="flex items-center justify-center mb-4 sm:mb-6">
                 <div className="w-8 sm:w-12 text-center font-bold text-red-600 mr-3 sm:mr-6 bg-red-50 py-1 sm:py-2 px-2 sm:px-3 rounded-lg border border-red-200 text-sm sm:text-base">
                   {row}
                 </div>
                 <div className="flex gap-1 sm:gap-2 lg:gap-3">
-                  {seats.filter(seat => seat.row === row).slice(0, 5).map(seat => (
-                    <Tooltip 
-                      key={seat.id}
-                      title={
-                        seat.isBooked 
-                          ? `Seat ${seat.id} is already booked` 
-                          : `${seat.id} - ${seat.type.toUpperCase()} - ₹${seat.price}`
-                      }
-                      color={seat.isBooked ? '#ff4d4f' : '#1890ff'}
-                    >
-                      <div>
-                        <SeatButton
-                          seat={seat}
-                          onClick={() => handleSeatClick(seat.id)}
-                          disabled={seat.isBooked}
-                        />
-                      </div>
-                    </Tooltip>
-                  ))}
-                  <div className="w-6 sm:w-12 flex items-center justify-center">
-                    <div className="w-4 sm:w-8 h-0.5 sm:h-1 bg-red-300 rounded-full"></div>
-                  </div>
-                  {seats.filter(seat => seat.row === row).slice(5, 12).map(seat => (
-                    <Tooltip 
-                      key={seat.id}
-                      title={
-                        seat.isBooked 
-                          ? `Seat ${seat.id} is already booked` 
-                          : `${seat.id} - ${seat.type.toUpperCase()} - ₹${seat.price}`
-                      }
-                      color={seat.isBooked ? '#ff4d4f' : '#1890ff'}
-                    >
-                      <div>
-                        <SeatButton
-                          seat={seat}
-                          onClick={() => handleSeatClick(seat.id)}
-                          disabled={seat.isBooked}
-                        />
-                      </div>
-                    </Tooltip>
-                  ))}
+                  {(() => {
+                    const rowSeats = seats.filter(seat => seat.row === row);
+                    const midPoint = Math.ceil(rowSeats.length / 2);
+                    return (
+                      <>
+                        {rowSeats.slice(0, midPoint).map(seat => (
+                          <Tooltip 
+                            key={seat.id}
+                            title={
+                              seat.isBooked 
+                                ? `Seat ${seat.id} is already booked` 
+                                : `${seat.id} - ${seat.type.toUpperCase()} - ₹${seat.price}`
+                            }
+                            color={seat.isBooked ? '#ff4d4f' : '#1890ff'}
+                          >
+                            <div>
+                              <SeatButton
+                                seat={seat}
+                                onClick={() => handleSeatClick(seat.id)}
+                                disabled={seat.isBooked}
+                              />
+                            </div>
+                          </Tooltip>
+                        ))}
+                        {rowSeats.length > 6 && (
+                          <div className="w-6 sm:w-12 flex items-center justify-center">
+                            <div className="w-4 sm:w-8 h-0.5 sm:h-1 bg-red-300 rounded-full"></div>
+                          </div>
+                        )}
+                        {rowSeats.slice(midPoint).map(seat => (
+                          <Tooltip 
+                            key={seat.id}
+                            title={
+                              seat.isBooked 
+                                ? `Seat ${seat.id} is already booked` 
+                                : `${seat.id} - ${seat.type.toUpperCase()} - ₹${seat.price}`
+                            }
+                            color={seat.isBooked ? '#ff4d4f' : '#1890ff'}
+                          >
+                            <div>
+                              <SeatButton
+                                seat={seat}
+                                onClick={() => handleSeatClick(seat.id)}
+                                disabled={seat.isBooked}
+                              />
+                            </div>
+                          </Tooltip>
+                        ))}
+                      </>
+                    );
+                  })()
+                  }
                 </div>
                 <div className="w-8 sm:w-12 text-center font-bold text-red-600 ml-3 sm:ml-6 bg-red-50 py-1 sm:py-2 px-2 sm:px-3 rounded-lg border border-red-200 text-sm sm:text-base">
                   {row}

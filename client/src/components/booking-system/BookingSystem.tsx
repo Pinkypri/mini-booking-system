@@ -736,6 +736,7 @@ const renderFilterBar = () => (
                     slotId={selectedSlot?.slot_ucode}
                     bookedSeats={bookedSeats} // Pass the booked seats from API
                     bookings={bookings} // Keep existing bookings for compatibility
+                    capacity={selectedSlot?.capacity || 96} // Pass the slot capacity
                   />
                 </Spin>
                 <div className="text-center mt-6">
