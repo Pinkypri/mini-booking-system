@@ -13,8 +13,8 @@ const AppDataSource = new DataSource({
   },
   synchronize: true, // Turn off in production
   logging: false,
-  entities: ["src/entity/**/*.ts"],
   migrations: [],
   subscribers: [],
+   entities: [Slot, Booking,User], 
 });
 export default AppDataSource;

@@ -10,6 +10,16 @@ export interface ISlotCreate {
   venue: string;
   slot_ucode:string;
 }
+export interface ISlot {
+  // slot fields
+  startTime: Date | string;
+  endTime: Date | string;
+  capacity: number;
+  price: number;
+  title: string;
+  venue: string;
+  // etc.
+}
 
 export interface ISlotResponse extends ISlotCreate {
   id: number;
