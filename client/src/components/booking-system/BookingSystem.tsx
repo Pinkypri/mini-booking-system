@@ -357,6 +357,11 @@ const BookingSystem: React.FC = () => {
       message.success(successMessage);
       setBookingStep(2);
       
+      // Immediately refresh booked seats for current slot
+      if (selectedSlot?.slot_ucode) {
+        dispatch(requestBookedSeats(selectedSlot.slot_ucode));
+      }
+      
       if (selectedSlot && selectedSeats.length > 0) {
         setLastBookingDetails({
           slot: selectedSlot,
@@ -372,6 +377,17 @@ const BookingSystem: React.FC = () => {
       const timer = setTimeout(() => {
         dispatch(clearBookingState());
         dispatch(getBookingsRequest());
+        // Refresh slot data to update available seats
+        dispatch(requestSlotData({
+          searchText,
+          selectedDate: selectedDate?.toISOString() || null,
+          dateRange: {
+            start: dateRange?.[0]?.toISOString() || null,
+            end: dateRange?.[1]?.toISOString() || null,
+          },
+          sortBy,
+          filterByAvailability,
+        }));
         setCurrentScreen("my-bookings");
         setSelectedSlot(null);
         setSelectedSeats([]);
